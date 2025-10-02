@@ -1,0 +1,18 @@
+.env
+__pycache__/
+*.pyc
+rids.json
+delays_output.csv
+.DS_Store
+
+# State and execution artifacts (exclude from git)
+state/
+logs/
+reports/
+
+# Daily data shards (exclude, but keep final outputs)
+data/raw_delays/delays_*_*_*_*.csv.gz
+
+# Keep these final outputs in git
+!data/delays_raw.csv.gz
+!data/leg_percentiles.csv

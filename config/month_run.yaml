@@ -1,0 +1,42 @@
+# Single source of truth configuration for rail delay data processing
+# This file declares routes, date range, windows, concurrency, and caps without touching code
+
+# Date range for data processing
+date_start: "2025-07-01"
+date_end: "2025-07-31"
+
+# Route pairs to process (origin -> destination)
+routes:
+  - ["EXD", "PAD"]  # Exeter → Paddington
+  - ["BRI", "PAD"]  # Bristol → Paddington  
+  - ["CDF", "PAD"]  # Cardiff → Paddington
+  - ["PAD", "HXX"]  # Paddington → Heathrow
+  - ["VIC", "GTW"]  # Victoria → Gatwick Airport
+
+# Time windows for processing (start, end times in HHMM format)
+time_windows:
+  - ["0600", "0859"]  # Morning peak
+  - ["0900", "1159"]  # Late morning
+  - ["1200", "1559"]  # Afternoon
+  - ["1600", "1959"]  # Evening peak
+
+# Processing limits and concurrency
+rid_cap_per_slice: 120  # Maximum RIDs per (route, day, window) slice
+workers: 12             # Number of concurrent workers
+sleep_every: 200        # Pause after N requests
+sleep_secs: 0.05        # Pause duration in seconds
+
+# Timeout settings
+metrics_timeout: 30     # Timeout for metrics requests (seconds)
+details_timeout: 25     # Timeout for details requests (seconds)
+
+# Retry configuration
+retry_backoff: [1, 2, 4]  # Backoff intervals for retries (seconds)
+
+# Advanced processing options
+bisection_on_timeout: true  # Auto-split failing windows (2x 2-hr, then 4x 1-hr)
+output_root: "data"         # Root directory for raw and derived data
+fail_fast: false           # Continue other tasks if one slice fails
+
+# Quality assurance
+qa_min_obs_per_cell: 8  # Minimum observations per cell for QA validation
