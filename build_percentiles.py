@@ -6,46 +6,44 @@ from tqdm import tqdm
 
 def build_percentiles(dates: List[str]) -> pd.DataFrame:
     """
-    Build percentile analysis from daily delay data files.
+    Build percentile analysis from concatenated delay data file.
     
     Args:
-        dates: List of dates in YYYY-MM-DD format
+        dates: List of dates in YYYY-MM-DD format (for compatibility, but reads from concatenated file)
     
     Returns:
         DataFrame with route/hour/dow percentile analysis
     """
-    print(f"Building percentiles from {len(dates)} dates...")
+    print(f"Building percentiles from concatenated data file...")
     
-    # Collect all available data files
-    all_data = []
-    files_found = 0
+    # Read from concatenated file instead of individual daily files
+    concatenated_path = "data/delays_raw.csv.gz"
     
-    for date in tqdm(dates, desc="Loading daily files"):
-        file_path = f"data/raw_delays/delays_{date}.csv.gz"
-        
-        if os.path.exists(file_path):
-            try:
-                df = pd.read_csv(file_path, compression="gzip")
-                if not df.empty:
-                    all_data.append(df)
-                    files_found += 1
-            except Exception as e:
-                print(f"Error reading {file_path}: {e}")
-                continue
-        else:
-            print(f"File not found: {file_path}")
-    
-    print(f"Loaded {files_found} files successfully")
-    
-    if not all_data:
-        print("No data files found, creating empty percentiles")
+    if not os.path.exists(concatenated_path):
+        print(f"Concatenated file not found: {concatenated_path}")
+        print("Creating empty percentiles")
         empty_df = pd.DataFrame(columns=[
             "origin", "dest", "hour", "dow", "p80", "p90", "p95", "obs_count"
         ])
         return empty_df
     
-    # Combine all data
-    combined_df = pd.concat(all_data, ignore_index=True)
+    try:
+        combined_df = pd.read_csv(concatenated_path, compression="gzip")
+        print(f"Loaded {len(combined_df)} observations from concatenated file")
+    except Exception as e:
+        print(f"Error reading concatenated file: {e}")
+        empty_df = pd.DataFrame(columns=[
+            "origin", "dest", "hour", "dow", "p80", "p90", "p95", "obs_count"
+        ])
+        return empty_df
+    
+    if combined_df.empty:
+        print("Concatenated file is empty, creating empty percentiles")
+        empty_df = pd.DataFrame(columns=[
+            "origin", "dest", "hour", "dow", "p80", "p90", "p95", "obs_count"
+        ])
+        return empty_df
+    
     print(f"Combined dataset: {len(combined_df)} total rows")
     
     # Ensure required columns exist
